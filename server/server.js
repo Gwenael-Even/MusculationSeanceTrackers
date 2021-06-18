@@ -21,7 +21,7 @@ mongoose
 
 // Cors
 app.use(cors({
-    origin:'http://localhost:3000'
+    origin: process.env.URL
 }))
 
 // Body Parser
