@@ -1,49 +1,78 @@
-import axios, { AxiosInstance } from 'axios'
-import React, { useState } from 'react'
+import React, { useState, useEffect  } from 'react'
 import { View, Text, Button, StyleSheet, TextInput } from 'react-native'
-import { FormHelper } from '../../Helper/forms/FormHelper'
+import { useForm, Controller } from "react-hook-form"
+import { useSelector, useDispatch } from 'react-redux'
+import { loginUser, userSelector, clearState } from '../../features/User/UserSlice'
 
 export interface SignInData {
   emailAddress: string,
   password: string
 }
 
-const LoginScreen: React.FC = () => {
+const LoginScreen: React.FC = (navigation) => {
+
+  const dispatch = useDispatch()
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>()
+  const { isFetching, isSuccess, isError, errorMessage } = useSelector(userSelector)
+  
+  const onSubmit = (data: any) => {
+    dispatch(loginUser({email: data.email.toLowerCase(), password: data.password}))
+  }
+
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearState());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isError) {
+      dispatch(clearState());
+    }
+    if (isSuccess) {
+      dispatch(clearState());
+    }
+  }, [isError, isSuccess]);
+
 
   const [signInData, setSignInData] = useState({
     emailAddress: '',
     password: '',
   })
 
-  const { onChangeText, onSubmit, values } = FormHelper(
-    LogUserCallback,
-    signInData
-  )
-
-  async function LogUserCallback() {
-    const { emailAddress, password } = signInData
-
-    //TODO : Verification check
-
-    axios.post('/user/login', { email: emailAddress, password: password})
-    .then((response) => {
-      console.log('reponse :', response)
-    })
-      .catch((error) => {
-        console.log('error request :', error.request)
-    })
-  }
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Login : </Text>
-      <TextInput style={styles.input} onChangeText={(text) => setSignInData({ ...signInData, emailAddress: text})}
-        value={signInData.emailAddress} placeholder={'Votre adresse email'} keyboardType='email-address' />
-      
-      <TextInput style={styles.input} onChangeText={(text) => setSignInData({ ...signInData, password: text})}
-        value={signInData.password} placeholder={'Votre mot de passe'} secureTextEntry={true} />
+      <Controller control={control} render={({ field: { onChange, onBlur, value } }) => (
+        <TextInput style={styles.input} onBlur={onBlur}
+          onChangeText={value => onChange(value)}
+          value={value}
+          placeholder={'Votre adresse email'}
+          keyboardType='email-address' />
+      )}
+        name="email"
+        rules={{ required: true }}
+      />
+      {errors.email && <Text>Email requis.</Text>}
 
-      <Button title="Log In" onPress={LogUserCallback}></Button>
+      <Controller control={control} render={({ field: { onChange, onBlur, value } }) => (
+        <TextInput
+          style={styles.input}
+          onBlur={onBlur}
+          onChangeText={value => onChange(value)}
+          value={value}
+          placeholder={'Votre mot de passe'}
+          secureTextEntry={true}
+        />
+      )}
+        name="password"
+        rules={{ required: true }}
+      />
+      {errors.email && <Text>Mot de passe requis.</Text>}
+
+      <Button title="Log In" onPress={handleSubmit(onSubmit)} />
     </View>
   )
 }
@@ -51,7 +80,7 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    width:150,
+    width: 150,
     margin: 12,
     borderWidth: 1,
   },

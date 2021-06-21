@@ -1,6 +1,9 @@
-import React, {useState} from 'react'
-import { View, Text, TextInput, StyleSheet } from 'react-native'
-import { FormHelper } from '../../Helper/forms/FormHelper'
+import React, {useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, Button } from 'react-native'
+import { useSelector, useDispatch } from 'react-redux';
+import { signupUser, userSelector, clearState } from '../../features/User/UserSlice';
+import { useForm } from 'react-hook-form';
+
 
 export interface SignUpData {
   firstName: string,
@@ -15,6 +18,30 @@ export interface SignUpData {
 
 const CreateAccountScreen: React.FC = () => {
 
+  const dispatch = useDispatch()
+  const { register, errors, handleSubmit } = useForm()
+  const { isFetching, isSuccess, isError, errorMessage } = useSelector(userSelector)
+
+  const onSubmit = (data:any) => {
+    dispatch(signupUser(data))
+  }
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearState())
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isSuccess) {
+      dispatch(clearState())
+    }
+
+    if (isError) {
+      dispatch(clearState())
+    }
+  }, [isSuccess, isError])
+
   const [signUpData, setSignupData] = useState({
     lastName: '',
     firstName: '',
@@ -25,15 +52,6 @@ const CreateAccountScreen: React.FC = () => {
     height: 0,
     weight: 0,
   })
-
-  const { onChangeText, onSubmit, values } = FormHelper(
-    createUserCallback,
-    signUpData
-  )
-
-  async function createUserCallback() {
-
-  }
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -57,6 +75,7 @@ const CreateAccountScreen: React.FC = () => {
       <TextInput style={styles.input} onChangeText={(text) => setSignupData({ ...signUpData, passwordConfirmation: text})}
         value={signUpData.password} placeholder={'Confirmez votre mot de passe'} secureTextEntry={true} />
 
+    <Button title="Log In" onPress={handleSubmit(onSubmit)} />
 
     </View>
   )
