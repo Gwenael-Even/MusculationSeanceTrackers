@@ -30,15 +30,16 @@ export const loginUser = createAsyncThunk(
   async ({ email, password }: { email: string, password: string }, thunkAPI) => {
     try {
       const response = await axios.post('/user/login', { email, password })
-      console.log('response login :', response.data)
+      console.log('response :', response)
       if (response.status === 200) {
         AsyncStorage.setItem('accessToken', response.data.accessToken)
         return { ...response.data, email: email }
       } else {
+        console.log('response :', response)
         return thunkAPI.rejectWithValue(response.data)
       }
     } catch (e: any) {
-      console.log('Error :', e.response.data)
+      console.log('Error :', e)
       return thunkAPI.rejectWithValue(e.response.data)
     }
   })
@@ -61,18 +62,31 @@ export const fetchUserByToken = createAsyncThunk(
   }
 )
 
+interface UsersState {
+  name: string,
+  email: string,
+  accessToken: string,
+  isFetching: boolean,
+  isSuccess: boolean,
+  isError: boolean,
+  isLogged: boolean,
+  errorMessage: string
+}
+
+const initialState = {
+  name: '',
+  email: '',
+  accessToken: '',
+  isFetching: false,
+  isSuccess: false,
+  isError: false,
+  isLogged: false,
+  errorMessage: ''
+} as UsersState
+
 export const userSlice = createSlice({
   name: 'user',
-  initialState: {
-    name: '',
-    email: '',
-    accessToken: '',
-    isFetching: false,
-    isSuccess: false,
-    isError: false,
-    isLogged: false,
-    errorMessage: ''
-  },
+  initialState: initialState,
   reducers: {
     clearState: (state) => {
       state.isError = false
@@ -80,17 +94,30 @@ export const userSlice = createSlice({
       state.isFetching = false
 
       return state
+    },
+    logout: (state) => {
+      state.isError = false
+      state.isSuccess = false
+      state.isFetching = false
+      state.isLogged = false
+      state.email = ''
+      state.accessToken = ''
+      state.name = ''
+
+      return state
+
     }
   },
   extraReducers: (builder) => {
 
     // REGISTER
-    builder.addCase(signupUser.fulfilled, (state, { payload }: { payload: any }) => {
+    builder.addCase(signupUser.fulfilled, (state, { payload }: { payload: any}) => {
 
+      console.log('payload :', payload)
       state.isFetching = false
       state.isSuccess = true
-      state.name = payload.users.name
-      state.email = payload.users.email
+      state.name = payload.name
+      state.email = payload.email
     }),
       builder.addCase(signupUser.pending, (state, { payload }: { payload: any }) => {
         state.isFetching = true
@@ -104,6 +131,7 @@ export const userSlice = createSlice({
       // LOGIN
       builder.addCase(loginUser.fulfilled, (state, { payload }: { payload: any }) => {
 
+        console.log('paylod ?', payload)
         state.isFetching = false
         state.isSuccess = true
         state.isLogged = true
@@ -113,15 +141,14 @@ export const userSlice = createSlice({
       builder.addCase(loginUser.pending, (state, { payload }: { payload: any }) => {
         state.isFetching = true
       }),
-      builder.addCase(loginUser.rejected, (state, { payload }: { payload: any }) => {
+      builder.addCase(loginUser.rejected, (state, { payload }: { payload: any}) => {
+        console.log('payload :', payload)
         state.isFetching = false
         state.isError = true
         state.errorMessage = payload.message
       }),
 
       builder.addCase(fetchUserByToken.fulfilled, (state, { payload }: { payload: any }) => {
-        console.log('state :', state)
-        console.log('payload :', payload)
 
         state.isFetching = false
         state.isSuccess = true
@@ -131,16 +158,16 @@ export const userSlice = createSlice({
       }),
 
       builder.addCase(fetchUserByToken.pending, (state, { payload }) => {
+        console.log('is Pending :', payload)
         state.isFetching = true
       }),
 
       builder.addCase(fetchUserByToken.rejected, (state, { payload }) => {
-        console.log('state rejected :', state)
         state.isFetching = false
         state.isError = true
       })
   },
 })
 
-export const { clearState } = userSlice.actions
+export const { clearState, logout } = userSlice.actions
 export const userSelector = (state: any) => state.user

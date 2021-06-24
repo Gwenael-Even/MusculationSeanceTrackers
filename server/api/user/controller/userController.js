@@ -1,32 +1,58 @@
-const { count } = require('../model/user')
-const User = require('../model/user')
+const db = require('../model/index')
+const User = db.user
+const Role = db.role
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const config = require('../../../config/db')
 
 /**
- * Crée un nouvelle utililisateur
+ * Crée un nouvelle utilisateur
  * @param {object} req 
  * @param {object} res 
  * @returns 
  */
 exports.registerNewUser = async (req, res) => {
-    try {
-        let emailExist = await User.find({ email: req.body.email }).countDocuments()
-        if(emailExist >= 1) {
-            return res.status(409).json({
-                message: 'Email déjà existant'
-            })
-        }
         const user = new User({
             name: req.body.name,
             email: req.body.email,
-            password: req.body.password
+            password: bcrypt.hashSync(req.body.password, 8)
         })
-        let data = await user.save()
-        // Méthode dans model/user
-        const token = await user.generateAuthToken()
-        res.status(201).json({ data, token })
-    } catch (err) {
-        res.status(400).json({ err: err })
-    }
+
+        user.save((err, user) => {
+            if(err) {
+                res.status(500).send({ message: err })
+                return  
+            }
+
+            if(req.body.roles) {
+                Role.find(
+                    {
+                        name: { $in: req.body.roles }
+                    },
+                    (err, roles) => {
+                        if(err) {
+                            res.status(500).send({ message: err })
+                            return 
+                        }
+                        user.roles = roles.map(role => role._id)
+                        user.save(err => {
+                            if(err) {
+                                res.status(500).send({ message: err })
+                                return  
+                            }
+                        })
+                    }
+                )
+            } else {
+                Role.findOne({ name: "user" }, (err, role) => {
+                    if(err) {
+                        res.status(500).send({ message: err })
+                        return  
+                    }
+                })
+            }
+            res.send({ message : "L'utilisateur à bien été crée"})
+        })
 }
 
 /**
@@ -36,18 +62,48 @@ exports.registerNewUser = async (req, res) => {
  * @returns 
  */
 exports.loginUser = async (req, res) => {
-    try {
-        const email = req.body.email
-        const password = req.body.password
-        const user = await User.findByCredentials(email, password)
-        if(!user) {
-            return res.status(401).json({ error : "Email ou mot de passe incorrect" })
-        }
-        const token = await user.generateAuthToken()
-        res.status(201).json({ user, token })
-    } catch (err) {
-        res.status(400).json({ err, err })
-    }
+    console.log('req :', req)
+   User.findOne({
+       email: req.body.email
+   })
+   .populate("roles", "-__v")
+   .exec((err, user) => {
+       if(err) {
+           res.status(500).send({ message: err })
+           return
+       }
+
+       if(!user) {
+           return res.status(404).send({ message: "Email ou mot de passe incorrect" })
+       }
+
+       let passwordIsValid = bcrypt.compareSync(req.body.password, user.password)
+
+       if(!passwordIsValid) {
+           return res.status(401).send({
+               accessToken: null,
+               message: "Invalid password"
+           })
+       }
+
+       let token = jwt.sign({ id: user.id}, config.secret, {
+           expiresIn: 86400 // 24 heures
+       })
+
+       let authorities = []
+
+       for(let i = 0; i < user.roles.length; i++) {
+        authorities.push(`ROLES ${user.roles[i].name.toUpperCase()}`)
+       }
+
+       res.status(200).send({
+           id: user._id,
+           email: user.email,
+           roles: authorities,
+           accessToken: token,
+           message: 'La connexion à bien été effectué'
+       })
+   })
 }
 
 exports.getUserDetails = async (req, res) => {
