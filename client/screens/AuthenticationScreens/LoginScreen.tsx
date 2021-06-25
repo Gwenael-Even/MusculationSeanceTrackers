@@ -3,9 +3,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useForm, Controller } from "react-hook-form"
 import { useSelector, useDispatch } from 'react-redux'
 import { loginUser, userSelector, clearState } from '../../features/User/UserSlice'
-import { Colors } from '../Style/'
-import { TextInput, HelperText, Snackbar } from 'react-native-paper'
-import { showMessage, hideMessage } from "react-native-flash-message";
+import { Colors, Typography } from '../Style/'
+import { TextInput } from 'react-native-paper'
+import { showMessage } from "react-native-flash-message";
 
 export interface SignInData {
   email: string,
@@ -105,18 +105,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingLeft: 25,
     paddingRight: 25,
-    backgroundColor: Colors.primary.background
   },
   text: {
-    color: Colors.primary.text
+    color: Colors.primary.text,
   },
   link: {
     color: Colors.primary.pink,
-    alignSelf: 'center'
+    alignSelf: 'center',
+
   },
   input: {
     marginBottom: 20,
-    color: Colors.primary.text
+    color: Colors.primary.text,
   },
   button: {
     width: 300,
