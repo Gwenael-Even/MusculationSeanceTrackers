@@ -1,12 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Theme } from 'react-native-paper/lib/typescript/types';
+import { Themes } from '../../screens/Style';
 
 interface ThemeState {
   isThemeDark: boolean,
   isFetching: boolean,
   isSuccess: boolean,
   isError: boolean,
-  errorMessage: string
+  errorMessage: string,
+  theme: Theme
 }
 
 const initialState = {
@@ -14,6 +17,7 @@ const initialState = {
   isFetching: false,
   isSuccess: false,
   isError: false,
+  theme: Themes.lightTheme,
   errorMessage: ''
 } as ThemeState
 
@@ -30,7 +34,8 @@ export const themeSlice = createSlice({
     },
     switchTheme: (state) => {
       state.isThemeDark = !state.isThemeDark
-    }
+      state.theme = state.isThemeDark ? Themes.darkTheme : Themes.lightTheme
+    },
   }
 })
 

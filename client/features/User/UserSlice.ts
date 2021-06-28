@@ -70,7 +70,8 @@ interface UsersState {
   isSuccess: boolean,
   isError: boolean,
   isLogged: boolean,
-  errorMessage: string
+  errorMessage: string,
+  successMessage: string
 }
 
 const initialState = {
@@ -81,21 +82,23 @@ const initialState = {
   isSuccess: false,
   isError: false,
   isLogged: false,
-  errorMessage: ''
+  errorMessage: '',
+  successMessage: '',
 } as UsersState
 
 export const userSlice = createSlice({
   name: 'user',
   initialState: initialState,
   reducers: {
-    clearState: (state) => {
+    clearState: (state: UsersState) => {
       state.isError = false
       state.isSuccess = false
       state.isFetching = false
+      state.errorMessage = ''
 
       return state
     },
-    logout: (state) => {
+    logout: (state: UsersState) => {
       state.isError = false
       state.isSuccess = false
       state.isFetching = false
@@ -103,7 +106,8 @@ export const userSlice = createSlice({
       state.email = ''
       state.accessToken = ''
       state.name = ''
-
+      state.successMessage = 'Déconnexion correctement effectué'
+      AsyncStorage.removeItem('accessToken')
       return state
 
     }
@@ -111,44 +115,39 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
 
     // REGISTER
-    builder.addCase(signupUser.fulfilled, (state, { payload }: { payload: any}) => {
-
-      console.log('payload :', payload)
+    builder.addCase(signupUser.fulfilled, (state: UsersState, { payload }: { payload: any}) => {
       state.isFetching = false
       state.isSuccess = true
       state.name = payload.name
       state.email = payload.email
     }),
-      builder.addCase(signupUser.pending, (state, { payload }: { payload: any }) => {
+      builder.addCase(signupUser.pending, (state: UsersState, { payload }: { payload: any }) => {
         state.isFetching = true
       }),
-      builder.addCase(signupUser.rejected, (state, { payload }: { payload: any }) => {
+      builder.addCase(signupUser.rejected, (state: UsersState, { payload }: { payload: any }) => {
         state.isFetching = false
         state.isError = true
         state.errorMessage = payload.message
       }),
 
       // LOGIN
-      builder.addCase(loginUser.fulfilled, (state, { payload }: { payload: any }) => {
-
-        console.log('paylod ?', payload)
+      builder.addCase(loginUser.fulfilled, (state: UsersState, { payload }: { payload: any }) => {
         state.isFetching = false
         state.isSuccess = true
         state.isLogged = true
         state.email = payload.email
         state.accessToken = payload.accessToken
       }),
-      builder.addCase(loginUser.pending, (state, { payload }: { payload: any }) => {
+      builder.addCase(loginUser.pending, (state: UsersState, { payload }: { payload: any }) => {
         state.isFetching = true
       }),
-      builder.addCase(loginUser.rejected, (state, { payload }: { payload: any}) => {
-        console.log('payload :', payload)
+      builder.addCase(loginUser.rejected, (state: UsersState, { payload }: { payload: any}) => {
         state.isFetching = false
         state.isError = true
         state.errorMessage = payload.message
       }),
 
-      builder.addCase(fetchUserByToken.fulfilled, (state, { payload }: { payload: any }) => {
+      builder.addCase(fetchUserByToken.fulfilled, (state: UsersState, { payload }: { payload: any }) => {
 
         state.isFetching = false
         state.isSuccess = true
@@ -157,12 +156,11 @@ export const userSlice = createSlice({
         state.name = payload.name
       }),
 
-      builder.addCase(fetchUserByToken.pending, (state, { payload }) => {
-        console.log('is Pending :', payload)
+      builder.addCase(fetchUserByToken.pending, (state: UsersState, { payload }) => {
         state.isFetching = true
       }),
 
-      builder.addCase(fetchUserByToken.rejected, (state, { payload }) => {
+      builder.addCase(fetchUserByToken.rejected, (state: UsersState, { payload }) => {
         state.isFetching = false
         state.isError = true
       })
@@ -170,4 +168,4 @@ export const userSlice = createSlice({
 })
 
 export const { clearState, logout } = userSlice.actions
-export const userSelector = (state: any) => state.user
+export const userSelector = (state: UsersState) => state.user

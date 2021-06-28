@@ -3,26 +3,30 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useForm, Controller } from "react-hook-form"
 import { useSelector, useDispatch } from 'react-redux'
 import { loginUser, userSelector, clearState } from '../../features/User/UserSlice'
-import { Colors, Typography } from '../Style/'
-import { TextInput } from 'react-native-paper'
+import { TextInput, Title } from 'react-native-paper'
 import { showMessage } from "react-native-flash-message";
+import { themeSelector } from '../../features/Theme/ThemeSlice';
+import { Colors } from '../Style/index'
 
 export interface SignInData {
   email: string,
   password: string
 }
 
-const LoginScreen: React.FC = ({ navigation }) => {
+const LoginScreen: React.FC = ({ navigation }:any) => {
 
   const dispatch = useDispatch()
   const { handleSubmit, control, formState: { errors } } = useForm()
   const { isFetching, isError, errorMessage } = useSelector(userSelector)
   const [passwordShow, setPasswordShow] = useState(true)
   const [passwordIcon, setPasswordIcon] = useState("eye-off")
+  const { theme } = useSelector(themeSelector)
+
 
   const changeIcon = () => {
     setPasswordIcon(passwordIcon === 'eye' ? 'eye-off' : 'eye')
     setPasswordShow(!passwordShow)
+    
   }
 
   const onSubmit = (data: SignInData) => {
@@ -48,19 +52,23 @@ const LoginScreen: React.FC = ({ navigation }) => {
 
   }, [isError]);
 
+
+
   return (
     <View style={styles.container}>
+      <Title>Musculation Seance Tracker</Title>
+
       <Controller control={control} render={({ field: { onChange, onBlur, value } }) => (
         <TextInput
           style={styles.input}
           onBlur={onBlur}
           onChangeText={value => onChange(value)}
           keyboardType='email-address'
-          selectionColor={Colors.primary.text}
-          underlineColor={Colors.primary.text}
+          selectionColor={theme.colors.primary}
+          underlineColor={theme.colors.primary}
           value={value}
           label="email"
-          left={<TextInput.Icon color={Colors.primary.pink} name="email" />}
+          left={<TextInput.Icon color={theme.colors.primary} name="email" />}
         />
       )}
         name="email"
@@ -73,12 +81,12 @@ const LoginScreen: React.FC = ({ navigation }) => {
           onBlur={onBlur}
           onChangeText={value => onChange(value)}
           value={value}
-          selectionColor={Colors.primary.text}
-          underlineColor={Colors.primary.text}
+          selectionColor={theme.colors.primary}
+          underlineColor={theme.colors.primary}
           secureTextEntry={passwordShow}
           label="Password"
-          left={<TextInput.Icon color={Colors.primary.pink} name="lock-open" />}
-          right={<TextInput.Icon color={Colors.primary.pink} name={passwordIcon} onPress={changeIcon} />
+          left={<TextInput.Icon color={theme.colors.primary} name="lock-open" />}
+          right={<TextInput.Icon color={theme.colors.primary} name={passwordIcon} onPress={changeIcon} />
     
           }
           />
@@ -107,27 +115,27 @@ const styles = StyleSheet.create({
     paddingRight: 25,
   },
   text: {
-    color: Colors.primary.text,
+    color: Colors.darkColors.text,
   },
   link: {
-    color: Colors.primary.pink,
+    color: Colors.darkColors.primary,
     alignSelf: 'center',
 
   },
   input: {
     marginBottom: 20,
-    color: Colors.primary.text,
+    color: Colors.darkColors.text,
   },
   button: {
     width: 300,
     height: 37,
-    color: Colors.primary.text,
-    backgroundColor: Colors.primary.pink,
+    color: Colors.darkColors.text,
+    backgroundColor: Colors.darkColors.primary,
     borderRadius: 10,
     padding: 10,
     justifyContent: 'center',
     alignSelf: 'center',
-    shadowColor: "#000",
+    shadowColor: Colors.darkColors.background,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -137,7 +145,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   textButton: {
-    color: Colors.primary.text,
+    color: Colors.darkColors.text,
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',

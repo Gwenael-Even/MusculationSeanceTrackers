@@ -6,7 +6,7 @@ import HomeScreen from '../screens/HomeScreen'
 import LogoutScreen from '../screens/AuthenticationScreens/LogoutScreen'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function TabNavigator() {
+export default function TabNavigator({ theme }) {
 
   type TabStackParamList = {
     Home: undefined,
@@ -16,10 +16,10 @@ export default function TabNavigator() {
   const Tab = createMaterialBottomTabNavigator<TabStackParamList>()
   return (
 
-    <NavigationContainer>
+    <NavigationContainer theme={theme}>
       <Tab.Navigator
         initialRouteName="Home"
-        barStyle={{ backgroundColor: Colors.primary.pink, paddingBottom: 10 }}
+        barStyle={{ backgroundColor: Colors.darkColors.pink, paddingBottom: 10 }}
       >
         <Tab.Screen name="Home" component={HomeScreen}
           options={{

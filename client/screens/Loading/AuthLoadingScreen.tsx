@@ -2,61 +2,41 @@ import React from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 import { Title } from 'react-native-paper';
 import { userSelector } from '../../features/User/UserSlice'
-import { themeSelector, switchTheme } from '../../features/Theme/ThemeSlice';
+import { themeSelector } from '../../features/Theme/ThemeSlice';
 import TabNavigator from '../../Navigator/TabNavigator';
 import AuthNavigator from '../../Navigator/AuthNavigator';
-import { Colors, Typography } from '../Style';
-import { useSelector, useDispatch } from 'react-redux'
+import { Colors, Themes } from '../Style';
+import { useSelector } from 'react-redux'
 import {
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationDefaultTheme,
-} from '@react-navigation/native';
-import {
-  Button,
   ActivityIndicator,
   Provider as PaperProvider,
-  DarkTheme as PaperDarkTheme,
-  DefaultTheme as PaperDefaultTheme,
 } from 'react-native-paper';
-import merge from 'deepmerge'
 
-const CombinedDefaultTheme = merge(PaperDefaultTheme, NavigationDefaultTheme)
-const CombinedDarkTheme = merge(PaperDarkTheme, NavigationDarkTheme)
 
 export const AuthLoadingScreen = () => {
   const { isLogged, isFetching } = useSelector(userSelector)
-  const [fontsLoaded] = Typography.useFonts(Typography.useFontsArg);
-  const { isThemeDark } = useSelector(themeSelector)
-  const dispatch = useDispatch()
+  const { theme } = useSelector(themeSelector)
 
-  const toggleTheme = () => {
-    dispatch(switchTheme())
-  }
-
-  let theme = isThemeDark ? CombinedDarkTheme : CombinedDefaultTheme
 
   let whatToLoad
 
-  if (isFetching || !fontsLoaded) {
-    whatToLoad = <View style={styles.container}>
-      <ActivityIndicator animating={true} size={'large'} color={Colors.primary.pink} />
-      <Title style={styles.title}>Chargement ...</Title>
-      <Button onPress={toggleTheme}>
-        Switch Theme
-        </Button>
-
-    </View>
+  if (isFetching) {
+    whatToLoad =
+      <View style={{ backgroundColor: theme.colors.background, flex:1, justifyContent: 'center' }}>
+        <ActivityIndicator animating={true} size={'large'} color={theme.colors.accent} />
+        <Title style={styles.title}>Chargement ...</Title>
+      </View>
   }
 
   else if (isLogged) {
-    whatToLoad = <TabNavigator />
+    whatToLoad = <TabNavigator theme={theme} />
   } else {
-    whatToLoad = <AuthNavigator />
+    whatToLoad = <AuthNavigator theme={theme} />
   }
 
   return (
     <PaperProvider theme={theme}>
-      { whatToLoad }
+      {whatToLoad}
     </PaperProvider>
   )
 
@@ -72,6 +52,30 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 50,
     alignSelf: 'center',
-    fontFamily: Typography.fonts.GothicA1_400Regular
+  },
+  button: {
+    width: 300,
+    height: 37,
+    color: Colors.darkColors.text,
+    backgroundColor: Colors.darkColors.pink,
+    borderRadius: 10,
+    padding: 10,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    shadowColor: Colors.darkColors.background,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  textButton: {
+    color: Colors.darkColors.text,
+    alignItems: 'center',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    textTransform: 'uppercase',
   }
 })

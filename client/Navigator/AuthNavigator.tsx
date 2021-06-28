@@ -1,11 +1,11 @@
 import React from 'react'
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/AuthenticationScreens/LoginScreen'
 import CreateAccountScreen from '../screens/AuthenticationScreens/CreateAccountScreen'
-import { Colors, Typography } from '../screens/Style';
+import CustomAppBar from '../components/AppBar/CustomAppBar';
 
-export default function AuthNavigator() {
+export default function AuthNavigator({ theme }: {theme: Theme}) {
   
 
   type AuthStackParamList = {
@@ -18,13 +18,13 @@ export default function AuthNavigator() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Connexion"
         screenOptions={{
+          header: (props) => <CustomAppBar {...props} />,
           headerStyle: {
-            backgroundColor: Colors.primary.pink
+            backgroundColor: theme.colors.primary
           },
-          headerTintColor: Colors.primary.text,
+          headerTintColor: theme.colors.text,
           headerTitleStyle: {
             alignSelf: 'center',
-            fontFamily: Typography.fonts.GothicA1_400Regular
           }
          }}
       >
